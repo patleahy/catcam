@@ -8,6 +8,13 @@ import botocore
 
 
 def main(bucket, prefix):
+    '''
+    Take a picture, copy it to an s3 bucket and put a img tag in a html file in the s3 bucket.
+
+    bucket  the name of the bucket
+    prefix  the path in the bucket to put the image
+    '''
+
     now = datetime.now()
     
     upload_folder = './upload/{:0000}/{:00}/{:00}'.format(now.year, now.month, now.day)
@@ -30,6 +37,15 @@ def make_folder(name):
 
 
 def save_img(filepath, trys):
+    '''
+    Use the fswebcam command to take a picture.
+    This command fails often so I retry it multiple times with a 60 second sleep between tries.
+
+    filepath    where to save the file
+    trys        how many times to try to save the file
+    '''
+    
+    
     file_saved = False
     i = 0
 
@@ -48,6 +64,15 @@ def save_img(filepath, trys):
 
 
 def upload_file(bucket, prefix, upload_folder, filename):
+    '''
+    Upload a file to s3
+
+    bucket          the bucket to upload to
+    prefix          the prefix path to upload the file into
+    upload_folder   the folder containing the file
+    filename        the name of the file to upload
+    '''
+
     filepath = os.path.join(upload_folder, filename)
     objectpath = os.path.join(prefix, filename)
 
@@ -62,6 +87,20 @@ def upload_file(bucket, prefix, upload_folder, filename):
 
 
 def add_to_index(bucket, prefix, upload_folder, filename, now):
+    '''
+    Add an img tag for a file to the index.html file. If there is no index.html file then one is created. 
+    
+    This works by downloading the image.html file from s3. Finding the commet "<!-- INSERT_HERE -->" in the file.
+    Add the new img tag just before the comment. And then uploading the updated file back to s3. If there is no
+    existing file at s3 then the index.html file in the same folder as this script is used.
+
+    bucket          the bucket to upload to
+    prefix          the prefix path to upload the file into
+    upload_folder   the folder containing the file
+    filename        the name of the file to upload
+    now             the date time used to set the title of the html file
+    '''
+    
     s3 = boto3.client('s3')
 
     key = os.path.join(prefix, 'index.html')
